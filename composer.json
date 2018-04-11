@@ -1,5 +1,5 @@
 {
-    "name": "namet117/socialite",
+    "name": "namet/socialite",
     "description": "a OAuth2 client package, with QQ|Wechat|Weibo inside",
     "type": "library",
     "keywords" : ["nameT", "OAuth2", "socialite", "QQ", "Wechat"],
