@@ -1,0 +1,23 @@
+{
+    "name": "namet117/socialite",
+    "description": "a OAuth2 client package, with QQ|Wechat|Weibo inside",
+    "type": "library",
+    "keywords" : ["nameT", "OAuth2", "socialite", "QQ", "Wechat"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "namet117",
+            "email": "namet117@163.com",
+            "homepage": "http://namet.xyz"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Namet\\Socialite\\": "src/"
+        }
+    },
+    "require": {
+        "php": ">=5.6",
+        "guzzlehttp/guzzle": "~6.0"
+    }
+}
