@@ -4,7 +4,7 @@ namespace Namet\Socialite\Drivers;
 
 use Namet\Socialite\DriverInterface;
 
-class Wechat implements DriverInterface
+class Weibo implements DriverInterface
 {
     public function authorize()
     {

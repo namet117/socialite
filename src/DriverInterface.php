@@ -1,9 +1,12 @@
 <?php
 
+
 namespace Namet\Socialite;
 
 interface DriverInterface
 {
+    public function setConfig();
+
     public function authorize();
 
     public function getCode();
@@ -16,5 +19,4 @@ interface DriverInterface
 
     public function getUserInfo();
 
-    public function log();
 }

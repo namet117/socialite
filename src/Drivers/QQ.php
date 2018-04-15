@@ -4,7 +4,7 @@ namespace Namet\Socialite\Drivers;
 
 use Namet\Socialite\DriverInterface;
 
-class Wechat implements DriverInterface
+class QQ implements DriverInterface
 {
     public function authorize()
     {
