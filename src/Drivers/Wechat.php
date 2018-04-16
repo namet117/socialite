@@ -6,9 +6,11 @@ use Namet\Socialite\DriverInterface;
 
 class Wechat implements DriverInterface
 {
+    private $code = null;
+
     public function authorize()
     {
-        // TODO: Implement authorize() method.
+
     }
 
     public function getAccessToken()
@@ -35,10 +37,4 @@ class Wechat implements DriverInterface
     {
         // TODO: Implement refreshToken() method.
     }
-
-    public function setConfig()
-    {
-        // TODO: Implement setConfig() method.
-    }
 }
-

@@ -5,8 +5,6 @@ namespace Namet\Socialite;
 
 interface DriverInterface
 {
-    public function setConfig();
-
     public function authorize();
 
     public function getCode();

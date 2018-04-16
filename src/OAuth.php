@@ -28,15 +28,7 @@ class OAuth
     public function __construct($driver = '')
     {
         if ($driver) {
-            if (!isset(self::$driver_list[$driver])) {
-                throw new SocialiteException('不存在的驱动：' . $driver);
-            }
-
-            if (isset(self::$drivers_instance[$driver])) {
-                $this->driver = self::$drivers_instance[$driver];
-            } else {
-                $this->createInstance($driver);
-            }
+            $this->getInstance($driver);
         }
     }
 
@@ -55,8 +47,6 @@ class OAuth
      * @desc 创建驱动实例
      *
      * @param $driver
-     *
-     * @return $this
      */
     private function createInstance($driver)
     {
@@ -68,8 +58,24 @@ class OAuth
 
         self::$drivers_instance[$driver] = $instance;
         $this->driver = $instance;
+    }
 
-        return $this;
+    /**
+     * @desc 获取驱动实例，如果已经存在实例则直接返回，若不存在则创建
+     *
+     * @param $driver
+     */
+    private function getInstance($driver)
+    {
+        if (!isset(self::$driver_list[$driver])) {
+            throw new SocialiteException('不存在的驱动：' . $driver);
+        }
+
+        if (isset(self::$drivers_instance[$driver])) {
+            $this->driver = self::$drivers_instance[$driver];
+        } else {
+            $this->createInstance($driver);
+        }
     }
 
     /**
@@ -82,6 +88,8 @@ class OAuth
     public function driver($driver)
     {
         $this->createInstance($driver);
+
+        return $this;
     }
 
     /**
