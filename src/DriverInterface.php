@@ -11,9 +11,9 @@ interface DriverInterface
 
     public function getAccessToken();
 
-    public function refreshToken();
+    public function refreshAccessToken();
 
-    public function getResource();
+    public function getResponse();
 
     public function getUserInfo();
 

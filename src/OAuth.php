@@ -5,6 +5,15 @@ use Namet\Socialite\Drivers\QQ;
 use Namet\Socialite\Drivers\Wechat;
 use Namet\Socialite\Drivers\Weibo;
 
+
+/**
+ * Class OAuth
+ *
+ * @method config
+ * @method redirect
+ *
+ * @package Namet\Socialite
+ */
 class OAuth
 {
     // 所有可用驱动
@@ -25,10 +34,11 @@ class OAuth
      *
      * @throws \Namet\Socialite\SocialiteException
      */
-    public function __construct($driver = '')
+    public function __construct($driver = '', $config = [])
     {
         if ($driver) {
             $this->getInstance($driver);
+            $config && $this->driver->config($config);
         }
     }
 
@@ -52,7 +62,7 @@ class OAuth
     {
         $class = self::$driver_list[$driver];
         $instance = new $class;
-        if (! $instance instanceof DriverInterface) {
+        if (!$instance instanceof DriverInterface) {
             throw new SocialiteException("{$class} 必须实现DriverInterface接口");
         }
 
