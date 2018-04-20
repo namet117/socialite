@@ -10,7 +10,12 @@ use Namet\Socialite\Drivers\Weibo;
  * Class OAuth
  *
  * @method config
- * @method redirect
+ * @method authorize
+ * @method getCode
+ * @method getToken
+ * @method getUserInfo
+ * @method refreshToken
+ * @method checkToken
  *
  * @package Namet\Socialite
  */
@@ -37,7 +42,7 @@ class OAuth
     public function __construct($driver = '', $config = [])
     {
         if ($driver) {
-            $this->getInstance($driver);
+            $this->_getInstance($driver);
             $config && $this->driver->config($config);
         }
     }
@@ -58,7 +63,7 @@ class OAuth
      *
      * @param $driver
      */
-    private function createInstance($driver)
+    private function _createInstance($driver)
     {
         $class = self::$driver_list[$driver];
         $instance = new $class;
@@ -75,7 +80,7 @@ class OAuth
      *
      * @param $driver
      */
-    private function getInstance($driver)
+    private function _getInstance($driver)
     {
         if (!isset(self::$driver_list[$driver])) {
             throw new SocialiteException('不存在的驱动：' . $driver);
@@ -84,7 +89,7 @@ class OAuth
         if (isset(self::$drivers_instance[$driver])) {
             $this->driver = self::$drivers_instance[$driver];
         } else {
-            $this->createInstance($driver);
+            $this->_createInstance($driver);
         }
     }
 

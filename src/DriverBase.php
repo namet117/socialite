@@ -20,7 +20,9 @@ abstract class DriverBase
         $client = new Client();
         try {
             $response = $client->get($url);
-            $response = \GuzzleHttp\json_decode($response, true);
+            $response = \GuzzleHttp\json_decode((string)$response->getBody(), true);
+
+            return $response;
         } catch (Exception $e) {
             throw new SocialiteException($e->getMessage());
         }
@@ -35,6 +37,6 @@ abstract class DriverBase
 
     private function _buildUrl($url, $params, $href = '')
     {
-        return "{$url}?" . http_build_query($params) . '#' . urlencode($href);
+        return "{$url}?" . http_build_query($params) . ($href ? ('#' . urlencode($href)) : '' );
     }
 }
