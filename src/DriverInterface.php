@@ -9,9 +9,9 @@ interface DriverInterface
 
     public function getCode();
 
-    public function getAccessToken();
+    public function getToken();
 
-    public function refreshAccessToken();
+    public function refreshToken();
 
     public function getResponse();
 
