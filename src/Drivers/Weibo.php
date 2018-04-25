@@ -6,35 +6,38 @@ use Namet\Socialite\DriverInterface;
 use Namet\Socialite\DriverBase;
 use Namet\Socialite\SocialiteException;
 
-class Wechat extends DriverBase implements DriverInterface
+class Weibo extends DriverBase implements DriverInterface
 {
-    // 微信接口返回的原始数据存储
+    // client_id
+    private $_appid = null;
+    // client_secret
+    private $_secret = null;
+    // 跳转链接
+    private $_redirect_uri = null;
+    // 接口返回的原始数据存储
     private $_response = [];
-    // 微信用户授权后，得到的code参数
+    // 用户授权后，得到的code参数
     private $_code = null;
     // 用户的token
     private $_access_token = null;
-    // 刷新token
-    private $_resfresh_token = null;
+    // weibo的oauth_api固定域名
+    private $_base_url = 'https://api.weibo.com/';
 
     /**
-     * 跳转到微信用户授权界面
+     * 跳转到用户授权界面
      */
     public function authorize()
     {
-        $base_url = 'https://api.weibo.com/oauth2/authorize';
         $params = [
-            'client_id' => $this->config['appid'],
-            'redirect_uri' => $this->config['redirect_uri'],
+            'client_id' => $this->_appid,
+            'redirect_uri' => $this->_redirect_uri,
             'response_type' => 'code',
-            'state' => empty($this->config['state']) ? 'WECHAT' : $this->config['state'],
         ];
 
-        if (!empty($this->config['scope'])) {
-            $params['scope'] = $this->config['scope'];
-        }
+        !empty($this->_state) && $params['state'] = $this->_state;
+        !empty($this->_scope) && $params['scope'] = $this->_scope;
 
-        $this->redirect($base_url, $params);
+        $this->redirect($this->_base_url . 'oauth2/authorize', $params);
     }
 
     /**
@@ -58,27 +61,29 @@ class Wechat extends DriverBase implements DriverInterface
     public function getToken()
     {
         if (!$this->_access_token) {
-            $base_url = 'https://api.weibo.com/oauth2/access_token';
             $params = [
-                'client_id' => $this->config['appid'],
-                'client_secret' => $this->config['secret'],
+                'client_id' => $this->_appid,
+                'client_secret' => $this->_secret,
                 'code' => $this->getCode(),
                 'grant_type' => 'authorization_code',
+                'redirect_uri' => $this->_redirect_uri,
             ];
-            $res = $this->get($base_url, $params);
+            $res = $this->post($this->_base_url . 'oauth2/access_token', $params);
             // 检查是否有错误
             $this->_checkError($res);
             // 记录返回的数据
             $this->_response[__FUNCTION__] = $res;
             // 将得到的access_token赋值到属性
             $this->_access_token = $res['access_token'];
+            // 保存uid
+            $this->_uid = $res['uid'];
         }
 
         return $this->_access_token;
     }
 
     /**
-     * @desc 根据key获取微信接口返回的原始数据的数组
+     * @desc 根据key获取接口返回的原始数据的数组
      *
      * @param string $key getToken/getUserInfo/refreshToken/checkToken
      *
@@ -99,7 +104,7 @@ class Wechat extends DriverBase implements DriverInterface
     }
 
     /**
-     * @desc 判断微信接口返回的数据是否有错误
+     * @desc 判断接口返回的数据是否有错误
      *
      * @param array $res 请求的结果
      *
@@ -123,17 +128,27 @@ class Wechat extends DriverBase implements DriverInterface
      */
     public function getUserInfo($lang = 'zh_CN')
     {
-        if (!in_array($lang, ['zh_CN', 'zh_TW', 'en'])) {
+        if (!in_array($lang, ['zh_CN'])) {
             throw new SocialiteException('unsupported language :' . $lang);
         }
-        $base_url = 'https://api.weibo.com/oauth2/get_token_info';
+
         $params = [
             'access_token' => $this->getToken(),
             'openid' => $this->_openid,
             'lang' => $lang
         ];
         // 获取数组
-        $res = $this->get($base_url, $params);
+        // $res = $this->get($this->_base_url . 'oauth2/get_token_info', $params);
+
+        $res = $this->get($this->_base_url.'/2/users/show.json', [
+            'query' => [
+                'uid' => $this->_uid,
+                'access_token' => $this->_access_token,
+            ],
+            'headers' => [
+                'Accept' => 'application/json',
+            ],
+        ]);
         // 检查返回值是否有错误
         $this->_checkError($res);
         // 记录返回的数据
@@ -144,24 +159,12 @@ class Wechat extends DriverBase implements DriverInterface
 
     public function refreshToken()
     {
-        throw new SocialiteException('不存在的接口');
+        throw new SocialiteException('不存在的接口:' . __FUNCTION__);
     }
 
     public function checkToken()
     {
-        $base_url = 'https://api.weixin.qq.com/sns/auth';
-        $params = [
-            'access_token' => $this->_access_token,
-            'openid' => $this->_openid,
-        ];
-        // 获取返回值数组
-        $res = $this->get($base_url, $params);
-        // 检查返回值中是否有错误  TODO 已失效情况下的返回数据待验证.
-        $this->_checkError($res);
-        // 记录返回的数据
-        $this->_response[__FUNCTION__] = $res;
-
-        return true;
+        throw new SocialiteException('不存在的接口:' . __FUNCTION__);
     }
 
     /**
@@ -169,13 +172,13 @@ class Wechat extends DriverBase implements DriverInterface
      *
      * @param array $config
      */
-    public function setConfig($config)
+    public function config($config)
     {
         foreach ($config as $k => $v) {
             $k = "_{$k}";
-            if (isset($this->$k)) {
-                $this->$k = $v;
-            }
+            $this->$k = $v;
         }
+
+        return $this;
     }
 }

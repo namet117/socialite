@@ -190,7 +190,7 @@ class Wechat extends DriverBase implements DriverInterface
      *
      * @param array $config
      */
-    public function setConfig($config)
+    public function config($config)
     {
         foreach ($config as $k => $v) {
             $k = "_{$k}";
@@ -198,5 +198,7 @@ class Wechat extends DriverBase implements DriverInterface
                 $this->$k = $v;
             }
         }
+
+        return $this;
     }
 }
