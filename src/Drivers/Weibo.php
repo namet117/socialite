@@ -140,7 +140,7 @@ class Weibo extends DriverBase implements DriverInterface
         // 获取数组
         // $res = $this->get($this->_base_url . 'oauth2/get_token_info', $params);
 
-        $res = $this->get($this->_base_url.'/2/users/show.json', [
+        $res = $this->get($this->_base_url.'2/users/show.json', [
             'query' => [
                 'uid' => $this->_uid,
                 'access_token' => $this->_access_token,
