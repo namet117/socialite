@@ -68,7 +68,11 @@ class Weibo extends DriverBase implements DriverInterface
                 'grant_type' => 'authorization_code',
                 'redirect_uri' => $this->_redirect_uri,
             ];
-            $res = $this->post($this->_base_url . 'oauth2/access_token', $params);
+
+            $res = $this->post(
+                $this->_base_url . 'oauth2/access_token',
+                ['form_params' => $params, 'headers' => ['Accept' => 'application/json']]);
+
             // 检查是否有错误
             $this->_checkError($res);
             // 记录返回的数据
@@ -112,15 +116,15 @@ class Weibo extends DriverBase implements DriverInterface
      */
     private function _checkError($res)
     {
-        if (!empty($res['errcode'])) {
-            throw new SocialiteException($res['errcode'] . ' : ' . $res['errmsg']);
+        if (!empty($res['error_code'])) {
+            throw new SocialiteException($res['error_code'] . ' : ' . $res['error']);
         }
     }
 
     /**
      * @desc 根据access_token获取用户基本信息
      *
-     * @param string $lang 语言：zh_CN/zh_TW/en
+     * @param string $lang 语言：zh_CN
      *
      * @throws \Namet\Socialite\SocialiteException
      *
@@ -128,19 +132,8 @@ class Weibo extends DriverBase implements DriverInterface
      */
     public function getUserInfo($lang = 'zh_CN')
     {
-        if (!in_array($lang, ['zh_CN'])) {
-            throw new SocialiteException('unsupported language :' . $lang);
-        }
 
-        $params = [
-            'access_token' => $this->getToken(),
-            'openid' => $this->_openid,
-            'lang' => $lang
-        ];
-        // 获取数组
-        // $res = $this->get($this->_base_url . 'oauth2/get_token_info', $params);
-
-        $res = $this->get($this->_base_url.'2/users/show.json', [
+        $res = $this->get($this->_base_url.'/users/show.json', [
             'query' => [
                 'uid' => $this->_uid,
                 'access_token' => $this->_access_token,

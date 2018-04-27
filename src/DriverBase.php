@@ -16,7 +16,7 @@ abstract class DriverBase
             $response = \GuzzleHttp\json_decode((string)$response->getBody(), true);
 
             return $response;
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             throw new SocialiteException($e->getMessage());
         }
     }
