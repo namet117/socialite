@@ -157,7 +157,7 @@ class Wechat extends DriverBase implements DriverInterface
             'refresh_token' => $this->config['refresh_token'],
         ];
         // 获取返回值数组
-        $res = $this->get($base_url, $params);
+        $res = $this->get($base_url, ['query' => $params]);
         // 检查返回值中是否有错误
         $this->_checkError($res);
         // 记录返回的数据
@@ -176,7 +176,7 @@ class Wechat extends DriverBase implements DriverInterface
             'openid' => $this->_openid,
         ];
         // 获取返回值数组
-        $res = $this->get($base_url, $params);
+        $res = $this->get($base_url, ['query' => $params]);
         // 检查返回值中是否有错误  TODO 已失效情况下的返回数据待验证.
         $this->_checkError($res);
         // 记录返回的数据

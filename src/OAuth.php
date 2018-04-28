@@ -102,7 +102,7 @@ class OAuth
      */
     public function driver($driver)
     {
-        $this->createInstance($driver);
+        $this->_getInstance($driver);
 
         return $this;
     }
