@@ -30,24 +30,10 @@ interface DriverInterface
     public function refreshToken();
 
     /**
-     * @desc 获取认证服务器返回的原始数据数组
-     */
-    public function getResponse();
-
-    /**
      * @desc 使用access_token 获取用户数据
      *
      * @param string $lang 返回数据的语言
      */
     public function getUserInfo($lang);
 
-    /**
-     * @desc 检查当前用户的access_token是否有效
-     */
-    public function checkToken();
-
-    /**
-     * @desc 配置
-     */
-    public function setConfig();
 }

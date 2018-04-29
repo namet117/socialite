@@ -9,7 +9,6 @@ use Namet\Socialite\Drivers\Weibo;
 /**
  * Class OAuth
  *
- * @method config
  * @method authorize
  * @method getCode
  * @method getToken
@@ -30,7 +29,7 @@ class OAuth
     // 可用驱动实例
     private static $drivers_instance = [];
     // 当前使用的驱动对象
-    private $driver = null;
+    public $driver = null;
 
     /**
      * OAuth constructor.
@@ -108,6 +107,20 @@ class OAuth
     }
 
     /**
+     * @desc 调用Driver的config方法
+     *
+     * @param $config
+     *
+     * @return $this
+     */
+    public function config($config)
+    {
+        $this->driver->config($config);
+
+        return $this;
+    }
+
+    /**
      * @desc 获取所有可用驱动列表
      *
      * @return array  name => driver
@@ -133,6 +146,32 @@ class OAuth
         }
 
         return call_user_func_array([$this->driver, $name], $arguments);
+    }
+
+    /**
+     * @desc 是否记录所有认证服务器返回的数据
+     *
+     * @param bool $log
+     *
+     * @return $this
+     */
+    public function withLog($log = false)
+    {
+        $this->driver->log($log);
+
+        return $this;
+    }
+
+    /**
+     * @param \Namet\Socialite\LogInterface $handler
+     *
+     * @return $this
+     */
+    public function setLogHandler(LogInterface $handler)
+    {
+        $this->driver->setLogHandler($handler);
+
+        return $this;
     }
 
 }

@@ -6,22 +6,24 @@ use Namet\Socialite\DriverInterface;
 use Namet\Socialite\DriverBase;
 use Namet\Socialite\SocialiteException;
 
-class Weibo extends DriverBase implements DriverInterface
+class QQ extends DriverBase implements DriverInterface
 {
     // client_id
-    private $_appid = null;
+    protected $_appid = null;
     // client_secret
-    private $_secret = null;
+    protected $_secret = null;
     // 跳转链接
-    private $_redirect_uri = null;
+    protected $_redirect_uri = null;
     // 接口返回的原始数据存储
-    private $_response = [];
+    protected $_response = [];
     // 用户授权后，得到的code参数
-    private $_code = null;
+    protected $_code = null;
     // 用户的token
-    private $_access_token = null;
-    // weibo的oauth_api固定域名
-    private $_base_url = 'https://graph.qq.com/';
+    protected $_access_token = null;
+    // oauth_api地址
+    protected $_base_url = 'https://graph.qq.com/';
+    // 此Driver的名称
+    protected $_name = 'qq';
 
     /**
      * 跳转到用户授权界面
@@ -82,7 +84,12 @@ class Weibo extends DriverBase implements DriverInterface
         return $this->_access_token;
     }
 
-    // 获取openid
+    /**
+     * @desc 根据access_token获取openid
+     *
+     * @return mixed
+     * @throws \Namet\Socialite\SocialiteException
+     */
     public function getOpenId()
     {
         if (!$this->_open_id) {
@@ -92,32 +99,11 @@ class Weibo extends DriverBase implements DriverInterface
             $res = $this->get($this->_base_url . 'oauth2.0/me', ['query' => $params]);
             // 检查是否有错误
             $this->_checkError($res);
-
+            // 将得到的数据赋值到属性
             $this->config($res);
         }
 
         return $this->_open_id;
-    }
-
-    /**
-     * @desc 根据key获取接口返回的原始数据的数组
-     *
-     * @param string $key getToken/getUserInfo/refreshToken/checkToken
-     *
-     * @return array|mixed
-     * @throws \Namet\Socialite\SocialiteException
-     */
-    public function getResponse($key = '')
-    {
-        if ($key) {
-            if (!isset($this->_response[$key])) {
-                throw new SocialiteException("undefined key {$key} in response array");
-            }
-
-            return $this->_response[$key];
-        } else {
-            return $this->_response;
-        }
     }
 
     /**
@@ -137,13 +123,13 @@ class Weibo extends DriverBase implements DriverInterface
     /**
      * @desc 根据access_token获取用户基本信息
      *
-     * @param string $lang 语言：zh_CN
+     * @param string $lang
      *
      * @throws \Namet\Socialite\SocialiteException
      *
      * @return array
      */
-    public function getUserInfo($lang = 'zh_CN')
+    public function getUserInfo($lang = '')
     {
 
         $res = $this->get($this->_base_url . 'user/get_user_info', [
@@ -164,6 +150,12 @@ class Weibo extends DriverBase implements DriverInterface
         return $res;
     }
 
+    /**
+     * @desc 刷新access_token
+     *
+     * @return $this
+     * @throws \Namet\Socialite\SocialiteException
+     */
     public function refreshToken()
     {
         $params = [
@@ -179,26 +171,6 @@ class Weibo extends DriverBase implements DriverInterface
         $this->_response[__FUNCTION__] = $res;
         // 更新配置
         $this->config($res);
-
-        return $this;
-    }
-
-    public function checkToken()
-    {
-        throw new SocialiteException('无此方法: ' . __FUNCTION__);
-    }
-
-    /**
-     * @desc 根据类中的属性赋值配置值
-     *
-     * @param array $config
-     */
-    public function config($config)
-    {
-        foreach ($config as $k => $v) {
-            $k = "_{$k}";
-            $this->$k = $v;
-        }
 
         return $this;
     }

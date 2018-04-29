@@ -9,15 +9,17 @@ use Namet\Socialite\SocialiteException;
 class Wechat extends DriverBase implements DriverInterface
 {
     // 微信接口返回的原始数据存储
-    private $_response = [];
+    protected $_response = [];
     // 微信用户授权后，得到的code参数
-    private $_code = null;
+    protected $_code = null;
     // 用户的token
-    private $_access_token = null;
+    protected $_access_token = null;
     // openid
-    private $_openid = null;
+    protected $_openid = null;
     // 刷新token
-    private $_resfresh_token = null;
+    protected $_resfresh_token = null;
+    // 此Driver的名称
+    protected $_name = 'wechat';
 
     /**
      * 跳转到微信用户授权界面
@@ -26,16 +28,16 @@ class Wechat extends DriverBase implements DriverInterface
     {
         $base_url = 'https://open.weixin.qq.com/connect/oauth2/authorize';
         $params = [
-            'appid' => $this->config['appid'],
-            'redirect_uri' => $this->config['redirect_uri'],
+            'appid' => $this->_appid,
+            'redirect_uri' => $this->_redirect_uri,
             'response_type' => 'code',
             'scope' => (
-                    isset($this->config['scope'])
-                    && in_array($this->config['scope'], ['snsapi_userinfo', 'snsapi_base'])
+                    isset($this->_scope)
+                    && in_array($this->_scope, ['snsapi_userinfo', 'snsapi_base'])
                 )
                 ? $this->config['scope']
                 : 'snsapi_userinfo',
-            'state' => empty($this->config['state']) ? 'WECHAT' : $this->config['state'],
+            'state' => empty($this->_state) ? 'WECHAT' : $this->_state,
         ];
 
         $this->redirect($base_url, $params, 'wechat_redirect');
@@ -64,58 +66,43 @@ class Wechat extends DriverBase implements DriverInterface
         if (!$this->_access_token) {
             $base_url = 'https://api.weixin.qq.com/sns/oauth2/access_token';
             $params = [
-                'appid' => $this->config['appid'],
-                'secret' => $this->config['secret'],
-                'code' => $this->getCode(),
+                'appid'      => $this->_appid,
+                'secret'     => $this->_secret,
+                'code'       => $this->getCode(),
                 'grant_type' => 'authorization_code',
             ];
-            $res = $this->get($base_url, $params);
+            $res = $this->get($base_url, ['query' => $params]);
             // 检查是否有错误
             $this->_checkError($res);
             // 记录返回的数据
-            $this->_response[__FUNCTION__] = $res;
-            // 将得到的access_token赋值到属性
-            $this->_access_token = $res['access_token'];
-            // 将得到的openid赋值到属性
-            $this->_openid = $res['openid'];
+            $this->_response[ __FUNCTION__ ] = $res;
+            // 将得到的数据赋值到属性
+            $this->config($res);
         }
 
         return $this->_access_token;
     }
 
     /**
-     * @desc 根据key获取微信接口返回的原始数据的数组
-     *
-     * @param string $key getToken/getUserInfo/refreshToken/checkToken
-     *
-     * @return array|mixed
-     * @throws \Namet\Socialite\SocialiteException
-     */
-    public function getResponse($key = '')
-    {
-        if ($key) {
-            if (!isset($this->_response[$key])) {
-                throw new SocialiteException("undefined key {$key} in response array");
-            }
-
-            return $this->_response[$key];
-        } else {
-            return $this->_response;
-        }
-    }
-
-    /**
      * @desc 判断微信接口返回的数据是否有错误
      *
-     * @param array $res 请求的结果
+     * @param array $res 接口返回数据
+     * @param bool $throw 验证失败时是否抛出异常
      *
+     * @return bool
      * @throws \Namet\Socialite\SocialiteException
      */
-    private function _checkError($res)
+    private function _checkError($res, $throw = true)
     {
         if (!empty($res['errcode'])) {
-            throw new SocialiteException($res['errcode'] . ' : ' . $res['errmsg']);
+            if ($throw) {
+                throw new SocialiteException($res['errcode'] . ' : ' . $res['errmsg']);
+            } else {
+                return false;
+            }
         }
+
+        return true;
     }
 
     /**
@@ -139,15 +126,21 @@ class Wechat extends DriverBase implements DriverInterface
             'lang' => $lang
         ];
         // 获取数组
-        $res = $this->get($base_url, $params);
-        // 检查返回值是否有错误
-        $this->_checkError($res);
+        $res = $this->get($base_url, ['query' => $params]);
         // 记录返回的数据
         $this->_response[__FUNCTION__] = $res;
+        // 检查返回值是否有错误
+        $this->_checkError($res);
 
         return $res;
     }
 
+    /**
+     * @desc 刷新access_token
+     *
+     * @return $this
+     * @throws \Namet\Socialite\SocialiteException
+     */
     public function refreshToken()
     {
         $base_url = 'https://api.weixin.qq.com/sns/oauth2/refresh_token';
@@ -158,17 +151,25 @@ class Wechat extends DriverBase implements DriverInterface
         ];
         // 获取返回值数组
         $res = $this->get($base_url, ['query' => $params]);
-        // 检查返回值中是否有错误
-        $this->_checkError($res);
         // 记录返回的数据
         $this->_response[__FUNCTION__] = $res;
+        // 检查返回值中是否有错误
+        $this->_checkError($res);
         // 更新配置
-        $this->setConfig($res);
+        $this->config($res);
 
         return $this;
     }
 
-    public function checkToken()
+    /**
+     * @desc 判断access_token是否有效
+     *
+     * @param bool $throw 无效时是否抛出异常
+     *
+     * @return bool
+     * @throws \Namet\Socialite\SocialiteException
+     */
+    public function checkToken($throw = false)
     {
         $base_url = 'https://api.weixin.qq.com/sns/auth';
         $params = [
@@ -177,28 +178,10 @@ class Wechat extends DriverBase implements DriverInterface
         ];
         // 获取返回值数组
         $res = $this->get($base_url, ['query' => $params]);
-        // 检查返回值中是否有错误  TODO 已失效情况下的返回数据待验证.
-        $this->_checkError($res);
         // 记录返回的数据
         $this->_response[__FUNCTION__] = $res;
 
-        return true;
-    }
-
-    /**
-     * @desc 根据类中的属性赋值配置值
-     *
-     * @param array $config
-     */
-    public function config($config)
-    {
-        foreach ($config as $k => $v) {
-            $k = "_{$k}";
-            if (isset($this->$k)) {
-                $this->$k = $v;
-            }
-        }
-
-        return $this;
+        // 检查返回值中是否有错误
+        return $this->_checkError($res, $throw);
     }
 }
