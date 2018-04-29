@@ -16,7 +16,7 @@ abstract class DriverBase
 {
     private $_client = null;
 
-    protected $_log = true;
+    protected $_log = false;
 
     protected $_log_handler = null;
 
