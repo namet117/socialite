@@ -134,7 +134,7 @@ class QQ extends DriverBase implements DriverInterface
 
         $res = $this->get($this->_base_url . 'user/get_user_info', [
             'query' => [
-                'access_token' => $this->getAccessToken(),
+                'access_token' => $this->getToken(),
                 'oauth_consumer_key' => $this->_appid,
                 'opneid' => $this->getOpenId(),
             ],
@@ -159,9 +159,9 @@ class QQ extends DriverBase implements DriverInterface
     public function refreshToken()
     {
         $params = [
-            'appid' => $this->config['appid'],
+            'appid' => $this->_appid,
             'grant_type' => 'refresh_token',
-            'refresh_token' => $this->config['refresh_token'],
+            'refresh_token' => $this->_refresh_token,
         ];
         // 获取返回值数组
         $res = $this->get($this->_base_url . 'oauth2.0/token', ['query' => $params]);

@@ -1,6 +1,8 @@
 <?php
 namespace Namet\Socialite;
 
+use Namet\Socialite\Drivers\Baidu;
+use Namet\Socialite\Drivers\Github;
 use Namet\Socialite\Drivers\QQ;
 use Namet\Socialite\Drivers\Wechat;
 use Namet\Socialite\Drivers\Weibo;
@@ -15,6 +17,7 @@ use Namet\Socialite\Drivers\Weibo;
  * @method getUserInfo
  * @method refreshToken
  * @method checkToken
+ * @method getResponse
  *
  * @package Namet\Socialite
  */
@@ -25,6 +28,8 @@ class OAuth
         'wechat' => Wechat::class,
         'qq' => QQ::class,
         'weibo' => Weibo::class,
+        'baidu' => Baidu::class,
+        'github' => Github::class,
     ];
     // 可用驱动实例
     private static $drivers_instance = [];

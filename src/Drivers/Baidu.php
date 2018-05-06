@@ -6,7 +6,7 @@ use Namet\Socialite\DriverInterface;
 use Namet\Socialite\DriverBase;
 use Namet\Socialite\SocialiteException;
 
-class Weibo extends DriverBase implements DriverInterface
+class Baidu extends DriverBase implements DriverInterface
 {
     // client_id
     protected $_appid = null;
@@ -17,14 +17,13 @@ class Weibo extends DriverBase implements DriverInterface
     // 接口返回的原始数据存储
     protected $_response = [];
     // 用户授权后，得到的code参数
-
     protected $_code = null;
     // 用户的token
     protected $_access_token = null;
-    // weibo的oauth_api固定域名
-    protected $_base_url = 'https://api.weibo.com/';
+    // oauth_api地址
+    protected $_base_url = 'https://openapi.baidu.com/';
     // 此Driver的名称
-    protected $_name = 'weibo';
+    protected $_name = 'baidu';
 
     /**
      * 跳转到用户授权界面
@@ -36,11 +35,10 @@ class Weibo extends DriverBase implements DriverInterface
             'redirect_uri' => $this->_redirect_uri,
             'response_type' => 'code',
         ];
-
         !empty($this->_state) && $params['state'] = $this->_state;
         !empty($this->_scope) && $params['scope'] = $this->_scope;
 
-        $this->redirect($this->_base_url . 'oauth2/authorize', $params);
+        $this->redirect($this->_base_url . 'oauth/2.0/authorize', $params);
     }
 
     /**
@@ -71,10 +69,9 @@ class Weibo extends DriverBase implements DriverInterface
                 'grant_type' => 'authorization_code',
                 'redirect_uri' => $this->_redirect_uri,
             ];
+            !empty($this->_state) && $params['state'] = $this->_state;
 
-            $res = $this->post(
-                $this->_base_url . 'oauth2/access_token',
-                ['form_params' => $params, 'headers' => ['Accept' => 'application/json']]);
+            $res = $this->get($this->_base_url . 'oauth/2.0/token', ['query' => $params]);
 
             // 检查是否有错误
             $this->_checkError($res);
@@ -96,30 +93,35 @@ class Weibo extends DriverBase implements DriverInterface
      */
     private function _checkError($res)
     {
-        if (!empty($res['error_code'])) {
-            throw new SocialiteException($res['error_code'] . ' : ' . $res['error']);
+        if (!empty($res['error']) || !empty($res['error_code'])) {
+            // 百度认证服务器返回数据和获取用户信息接口返回数据格式不一致。
+            $msg = isset($res['error'])
+                ? ($res['error'] . ' : ' . $res['error_description'])
+                : ($res['error_code'] . ' : ' . $res['error_msg']);
+
+            throw new SocialiteException($msg);
         }
     }
 
     /**
      * @desc 根据access_token获取用户基本信息
      *
-     * @param string $lang 语言：zh_CN
+     * @param string $lang
      *
      * @throws \Namet\Socialite\SocialiteException
      *
      * @return array
      */
-    public function getUserInfo($lang = 'zh_CN')
+    public function getUserInfo($lang = '')
     {
-
-        $res = $this->get($this->_base_url.'users/show.json', [
+        $res = $this->get($this->_base_url . 'rest/2.0/passport/users/getLoggedInUser', [
             'query' => [
-                'uid' => $this->_uid,
-                'access_token' => $this->_access_token,
+                'access_token' => $this->getToken()
             ],
             'headers' => [
-                'Accept' => 'application/json',
+                'Accept' => '*/*',
+                'Accept-Encoding' => 'gzip,deflate',
+                'Accept-Charset' => 'utf-8',
             ],
         ]);
         // 检查返回值是否有错误
@@ -127,16 +129,39 @@ class Weibo extends DriverBase implements DriverInterface
         // 记录返回的数据
         $this->_response[__FUNCTION__] = $res;
 
+        if (!empty($res['portrait'])) {
+            // 小头像
+            $res['small_avatar'] = 'http://tb.himg.baidu.com/sys/portraitn/item/' . $res['portrait'];
+            // 大头像
+            $res['large_avatar'] = 'http://tb.himg.baidu.com/sys/portrait/item/' . $res['portrait'];
+        }
+
         return $res;
     }
 
     /**
-     * @desc 貌似微博开放平台没有提供此方法
+     * @desc 刷新access_token
      *
+     * @return $this
      * @throws \Namet\Socialite\SocialiteException
      */
     public function refreshToken()
     {
-        throw new SocialiteException('暂未实现此方法');
+        $params = [
+            'grant_type' => 'refresh_token',
+            'refresh_token' => $this->_refresh_token,
+            'client_id' => $this->_appid,
+            'client_secret' => $this->_secret,
+        ];
+        // 获取返回值数组
+        $res = $this->get($this->_base_url . 'oauth/2.0/token', ['query' => $params]);
+        // 检查返回值中是否有错误
+        $this->_checkError($res);
+        // 记录返回的数据
+        $this->_response[__FUNCTION__] = $res;
+        // 更新配置
+        $this->config($res);
+
+        return $this;
     }
 }

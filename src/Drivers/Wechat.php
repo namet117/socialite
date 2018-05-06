@@ -35,7 +35,7 @@ class Wechat extends DriverBase implements DriverInterface
                     isset($this->_scope)
                     && in_array($this->_scope, ['snsapi_userinfo', 'snsapi_base'])
                 )
-                ? $this->config['scope']
+                ? $this->_scope
                 : 'snsapi_userinfo',
             'state' => empty($this->_state) ? 'WECHAT' : $this->_state,
         ];
@@ -145,9 +145,9 @@ class Wechat extends DriverBase implements DriverInterface
     {
         $base_url = 'https://api.weixin.qq.com/sns/oauth2/refresh_token';
         $params = [
-            'appid' => $this->config['appid'],
+            'appid' => $this->_appid,
             'grant_type' => 'refresh_token',
-            'refresh_token' => $this->config['refresh_token'],
+            'refresh_token' => $this->_refresh_token,
         ];
         // 获取返回值数组
         $res = $this->get($base_url, ['query' => $params]);
