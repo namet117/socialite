@@ -20,6 +20,8 @@ class Github extends DriverBase implements DriverInterface
     protected $_code = null;
     // 用户的token
     protected $_access_token = null;
+    // 用户信息
+    protected $_user_info = [];
     // 此Driver的名称
     protected $_name = 'github';
 
@@ -78,7 +80,7 @@ class Github extends DriverBase implements DriverInterface
             // 检查是否有错误
             $this->_checkError($res);
             // 记录返回的数据
-            $this->_response[__FUNCTION__] = $res;
+            $this->_response['token'] = $res;
             // 将得到的数据赋值到属性
             $this->config($res);
         }
@@ -116,20 +118,40 @@ class Github extends DriverBase implements DriverInterface
      */
     public function getUserInfo($lang = '')
     {
-        $res = $this->get('https://api.github.com/user', [
-            'query' => [
-                'access_token' => $this->getToken(),
-            ],
-            'headers' => [
-                'Accept' => 'application/json',
-            ],
-        ]);
-        // 检查返回值是否有错误
-        $this->_checkError($res);
-        // 记录返回的数据
-        $this->_response[__FUNCTION__] = $res;
+        if (!$this->_user_info) {
+            $res = $this->get('https://api.github.com/user', [
+                'query' => [
+                    'access_token' => $this->getToken(),
+                ],
+                'headers' => [
+                    'Accept' => 'application/json',
+                ],
+            ]);
+            // 检查返回值是否有错误
+            $this->_checkError($res);
+            // 记录返回的数据
+            $this->_response['user'] = $res;
 
-        return $res;
+            $this->_formatUserInfo();
+        }
+
+        return $this->_user_info;
+    }
+
+    /**
+     * 格式化用户数据
+     *
+     * @return array
+     */
+    private function _formatUserInfo()
+    {
+        $this->_user_info = [
+            'uid' => $this->_response['user']['id'],
+            'uname' => $this->_response['user']['name'],
+            'avatar' => $this->_response['user']['avatar_url'],
+        ];
+
+        return $this->_user_info;
     }
 
     /**
@@ -141,21 +163,5 @@ class Github extends DriverBase implements DriverInterface
     public function refreshToken()
     {
         throw new SocialiteException('暂未实现');
-//        $params = [
-//            'grant_type' => 'refresh_token',
-//            'refresh_token' => $this->_refresh_token,
-//            'client_id' => $this->_appid,
-//            'client_secret' => $this->_secret,
-//        ];
-//        // 获取返回值数组
-//        $res = $this->get($this->_base_url . 'oauth/2.0/token', ['query' => $params]);
-//        // 检查返回值中是否有错误
-//        $this->_checkError($res);
-//        // 记录返回的数据
-//        $this->_response[__FUNCTION__] = $res;
-//        // 更新配置
-//        $this->config($res);
-//
-//        return $this;
     }
 }

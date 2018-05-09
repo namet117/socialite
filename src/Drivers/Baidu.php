@@ -20,6 +20,8 @@ class Baidu extends DriverBase implements DriverInterface
     protected $_code = null;
     // 用户的token
     protected $_access_token = null;
+    // 用户信息
+    protected $_user_info = [];
     // oauth_api地址
     protected $_base_url = 'https://openapi.baidu.com/';
     // 此Driver的名称
@@ -34,6 +36,7 @@ class Baidu extends DriverBase implements DriverInterface
             'client_id' => $this->_appid,
             'redirect_uri' => $this->_redirect_uri,
             'response_type' => 'code',
+            'scope' => empty($this->_scope) ? 'basic' : $this->_scope,
         ];
         !empty($this->_state) && $params['state'] = $this->_state;
         !empty($this->_scope) && $params['scope'] = $this->_scope;
@@ -76,7 +79,7 @@ class Baidu extends DriverBase implements DriverInterface
             // 检查是否有错误
             $this->_checkError($res);
             // 记录返回的数据
-            $this->_response[__FUNCTION__] = $res;
+            $this->_response['token'] = $res;
             // 将得到的数据赋值到属性
             $this->config($res);
         }
@@ -114,29 +117,42 @@ class Baidu extends DriverBase implements DriverInterface
      */
     public function getUserInfo($lang = '')
     {
-        $res = $this->get($this->_base_url . 'rest/2.0/passport/users/getLoggedInUser', [
-            'query' => [
-                'access_token' => $this->getToken()
-            ],
-            'headers' => [
-                'Accept' => '*/*',
-                'Accept-Encoding' => 'gzip,deflate',
-                'Accept-Charset' => 'utf-8',
-            ],
-        ]);
-        // 检查返回值是否有错误
-        $this->_checkError($res);
-        // 记录返回的数据
-        $this->_response[__FUNCTION__] = $res;
+        if (!$this->_user_info) {
+            $res = $this->get($this->_base_url . 'rest/2.0/passport/users/getLoggedInUser', [
+                'query' => [
+                    'access_token' => $this->getToken()
+                ],
+                'headers' => [
+                    'Accept' => '*/*',
+                    'Accept-Encoding' => 'gzip,deflate',
+                    'Accept-Charset' => 'utf-8',
+                ],
+            ]);
+            // 检查返回值是否有错误
+            $this->_checkError($res);
+            // 记录返回的数据
+            $this->_response['user'] = $res;
 
-        if (!empty($res['portrait'])) {
-            // 小头像
-            $res['small_avatar'] = 'http://tb.himg.baidu.com/sys/portraitn/item/' . $res['portrait'];
-            // 大头像
-            $res['large_avatar'] = 'http://tb.himg.baidu.com/sys/portrait/item/' . $res['portrait'];
+            return $this->_formatUserInfo();
         }
 
-        return $res;
+        return $this->_user_info;
+    }
+
+    /**
+     * 格式化用户数据
+     *
+     * @return array
+     */
+    private function _formatUserInfo()
+    {
+        $this->_user_info = [
+            'uid' => $this->_response['user']['uid'],
+            'uname' => $this->_response['user']['uname'],
+            'avatar' => 'http://tb.himg.baidu.com/sys/portrait/item/' . $this->_response['user']['portrait'],
+        ];
+
+        return $this->_user_info;
     }
 
     /**
@@ -158,7 +174,7 @@ class Baidu extends DriverBase implements DriverInterface
         // 检查返回值中是否有错误
         $this->_checkError($res);
         // 记录返回的数据
-        $this->_response[__FUNCTION__] = $res;
+        $this->_response['refresh'] = $res;
         // 更新配置
         $this->config($res);
 

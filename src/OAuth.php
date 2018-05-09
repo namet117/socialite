@@ -26,7 +26,7 @@ class OAuth
     // 所有可用驱动
     private static $driver_list = [
         'wechat' => Wechat::class,
-        'qq' => QQ::class,
+//        'qq' => QQ::class,
         'weibo' => Weibo::class,
         'baidu' => Baidu::class,
         'github' => Github::class,

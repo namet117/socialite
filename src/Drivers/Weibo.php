@@ -17,10 +17,11 @@ class Weibo extends DriverBase implements DriverInterface
     // 接口返回的原始数据存储
     protected $_response = [];
     // 用户授权后，得到的code参数
-
     protected $_code = null;
     // 用户的token
     protected $_access_token = null;
+    // 用户信息
+    protected $_user_info = [];
     // weibo的oauth_api固定域名
     protected $_base_url = 'https://api.weibo.com/';
     // 此Driver的名称
@@ -35,10 +36,10 @@ class Weibo extends DriverBase implements DriverInterface
             'client_id' => $this->_appid,
             'redirect_uri' => $this->_redirect_uri,
             'response_type' => 'code',
+            'scope' => !empty($this->_scope) ? $this->_scope : 'email',
         ];
 
         !empty($this->_state) && $params['state'] = $this->_state;
-        !empty($this->_scope) && $params['scope'] = $this->_scope;
 
         $this->redirect($this->_base_url . 'oauth2/authorize', $params);
     }
@@ -74,12 +75,13 @@ class Weibo extends DriverBase implements DriverInterface
 
             $res = $this->post(
                 $this->_base_url . 'oauth2/access_token',
-                ['form_params' => $params, 'headers' => ['Accept' => 'application/json']]);
+                ['form_params' => $params, 'headers' => ['Accept' => 'application/json']]
+            );
 
             // 检查是否有错误
             $this->_checkError($res);
             // 记录返回的数据
-            $this->_response[__FUNCTION__] = $res;
+            $this->_response['token'] = $res;
             // 将得到的数据赋值到属性
             $this->config($res);
         }
@@ -104,30 +106,49 @@ class Weibo extends DriverBase implements DriverInterface
     /**
      * @desc 根据access_token获取用户基本信息
      *
-     * @param string $lang 语言：zh_CN
+     * @param string $lang 语言：
      *
      * @throws \Namet\Socialite\SocialiteException
      *
      * @return array
      */
-    public function getUserInfo($lang = 'zh_CN')
+    public function getUserInfo($lang = '')
     {
+        if (!$this->_user_info) {
+            $res = $this->get($this->_base_url.'2/users/show.json', [
+                'query' => [
+                    'access_token' => $this->getToken(),
+                    'uid' => $this->_uid,
+                ],
+                'headers' => [
+                    'Accept' => 'application/json',
+                ],
+            ]);
+            // 检查返回值是否有错误
+            $this->_checkError($res);
+            // 记录返回的数据
+            $this->_response['user'] = $res;
 
-        $res = $this->get($this->_base_url.'users/show.json', [
-            'query' => [
-                'uid' => $this->_uid,
-                'access_token' => $this->_access_token,
-            ],
-            'headers' => [
-                'Accept' => 'application/json',
-            ],
-        ]);
-        // 检查返回值是否有错误
-        $this->_checkError($res);
-        // 记录返回的数据
-        $this->_response[__FUNCTION__] = $res;
+            $this->_formatUserInfo();
+        }
 
-        return $res;
+        return $this->_user_info;
+    }
+
+    /**
+     * 格式化用户数据
+     *
+     * @return array
+     */
+    private function _formatUserInfo()
+    {
+        $this->_user_info = [
+            'uid' => $this->_response['user']['id'],
+            'uname' => $this->_response['user']['name'],
+            'avatar' => $this->_response['user']['avatar_large'],
+        ];
+
+        return $this->_user_info;
     }
 
     /**

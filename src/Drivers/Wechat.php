@@ -18,6 +18,8 @@ class Wechat extends DriverBase implements DriverInterface
     protected $_openid = null;
     // 刷新token
     protected $_resfresh_token = null;
+    // 用户信息
+    protected $_user_info = [];
     // 此Driver的名称
     protected $_name = 'wechat';
 
@@ -75,7 +77,7 @@ class Wechat extends DriverBase implements DriverInterface
             // 检查是否有错误
             $this->_checkError($res);
             // 记录返回的数据
-            $this->_response[ __FUNCTION__ ] = $res;
+            $this->_response[ 'token' ] = $res;
             // 将得到的数据赋值到属性
             $this->config($res);
         }
@@ -116,23 +118,43 @@ class Wechat extends DriverBase implements DriverInterface
      */
     public function getUserInfo($lang = 'zh_CN')
     {
-        if (!in_array($lang, ['zh_CN', 'zh_TW', 'en'])) {
-            throw new SocialiteException('unsupported language :' . $lang);
+        if (!$this->_user_info) {
+            if (!in_array($lang, ['zh_CN', 'zh_TW', 'en'])) {
+                throw new SocialiteException('unsupported language :' . $lang);
+            }
+            $base_url = 'https://api.weixin.qq.com/sns/userinfo';
+            $params = [
+                'access_token' => $this->getToken(),
+                'openid' => $this->_openid,
+                'lang' => $lang
+            ];
+            // 获取数组
+            $res = $this->get($base_url, ['query' => $params]);
+            // 记录返回的数据
+            $this->_response['user'] = $res;
+            // 检查返回值是否有错误
+            $this->_checkError($res);
+            // 格式化返回信息
+            $this->_formatUserInfo();
         }
-        $base_url = 'https://api.weixin.qq.com/sns/userinfo';
-        $params = [
-            'access_token' => $this->getToken(),
-            'openid' => $this->_openid,
-            'lang' => $lang
-        ];
-        // 获取数组
-        $res = $this->get($base_url, ['query' => $params]);
-        // 记录返回的数据
-        $this->_response[__FUNCTION__] = $res;
-        // 检查返回值是否有错误
-        $this->_checkError($res);
 
-        return $res;
+        return $this->_user_info;
+    }
+
+    /**
+     * 格式化用户数据
+     *
+     * @return array
+     */
+    private function _formatUserInfo()
+    {
+        $this->_user_info = [
+            'uid' => $this->_response['user']['openid'],
+            'uname' => $this->_response['user']['nickname'],
+            'avatar' => $this->_response['user']['headimgurl'],
+        ];
+
+        return $this->_user_info;
     }
 
     /**
