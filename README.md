@@ -30,7 +30,7 @@ $config = [
 <?php
 use Namet\Socialite\OAuth;
 
-// 当前支持的驱动有：wechat(微信)、qq(QQ账号)、weibo(新浪微博)
+// 当前支持的驱动有：wechat(微信)、weibo(新浪微博)、gitub(Github)、baidu(百度)
 /* Step1: 获取OAuth实例 */
 
 // 获取实例 方法1:
