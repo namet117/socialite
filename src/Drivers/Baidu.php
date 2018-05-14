@@ -6,54 +6,25 @@ use Namet\Socialite\DriverInterface;
 use Namet\Socialite\DriverBase;
 use Namet\Socialite\SocialiteException;
 
+/**
+ * Class Baidu
+ *
+ * @link http://developer.baidu.com/wiki/index.php?title=docs/oauth
+ *
+ * @package Namet\Socialite\Drivers
+ */
 class Baidu extends DriverBase implements DriverInterface
 {
-    // client_id
-    protected $_appid = null;
-    // client_secret
-    protected $_secret = null;
-    // 跳转链接
-    protected $_redirect_uri = null;
-    // 接口返回的原始数据存储
-    protected $_response = [];
-    // 用户授权后，得到的code参数
-    protected $_code = null;
-    // 用户的token
-    protected $_access_token = null;
-    // 用户信息
-    protected $_user_info = [];
     // oauth_api地址
     protected $_base_url = 'https://openapi.baidu.com/';
     // 此Driver的名称
     protected $_name = 'baidu';
+    // scope默认授权
+    protected $_scope = 'basic';
 
-    /**
-     * 跳转到用户授权界面
-     */
-    public function authorize()
+    public function authorize($redirect = true)
     {
-        $params = [
-            'client_id' => $this->_appid,
-            'redirect_uri' => $this->_redirect_uri,
-            'response_type' => 'code',
-            'scope' => empty($this->_scope) ? 'basic' : $this->_scope,
-        ];
-        !empty($this->_state) && $params['state'] = $this->_state;
-        !empty($this->_scope) && $params['scope'] = $this->_scope;
-
-        $this->redirect($this->_base_url . 'oauth/2.0/authorize', $params);
-    }
-
-    /**
-     * @desc 获取连接中的code参数
-     *
-     * @return string
-     */
-    public function getCode()
-    {
-        $this->_code = $this->_code ?: $_GET['code'];
-
-        return $this->_code;
+        $this->redirect('oauth/2.0/authorize', $redirect);
     }
 
     /**
@@ -109,13 +80,11 @@ class Baidu extends DriverBase implements DriverInterface
     /**
      * @desc 根据access_token获取用户基本信息
      *
-     * @param string $lang
-     *
      * @throws \Namet\Socialite\SocialiteException
      *
      * @return array
      */
-    public function getUserInfo($lang = '')
+    public function getUserInfo()
     {
         if (!$this->_user_info) {
             $res = $this->get($this->_base_url . 'rest/2.0/passport/users/getLoggedInUser', [

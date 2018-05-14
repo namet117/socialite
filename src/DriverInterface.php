@@ -31,9 +31,7 @@ interface DriverInterface
 
     /**
      * @desc 使用access_token 获取用户数据
-     *
-     * @param string $lang 返回数据的语言
      */
-    public function getUserInfo($lang);
+    public function getUserInfo();
 
 }

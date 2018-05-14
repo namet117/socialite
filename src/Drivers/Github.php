@@ -42,18 +42,6 @@ class Github extends DriverBase implements DriverInterface
     }
 
     /**
-     * @desc 获取连接中的code参数
-     *
-     * @return string
-     */
-    public function getCode()
-    {
-        $this->_code = $this->_code ?: $_GET['code'];
-
-        return $this->_code;
-    }
-
-    /**
      * @desc 获取access token
      *
      * @return string Access Token

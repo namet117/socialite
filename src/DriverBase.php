@@ -7,38 +7,132 @@ use GuzzleHttp\Exception\ClientException;
 /**
  * Class DriverBase
  *
- * @method get
- * @method post
- *
  * @package Namet\Socialite
  */
 abstract class DriverBase
 {
+    // guzzlehttp客户端
     private $_client = null;
-
+    // 是否开启日志记录
     protected $_log = false;
-
+    // 处理日志记录的实例
     protected $_log_handler = null;
+    /* ----------- 属性 ----------- */
+    // 接口返回的原始数据存储
+    protected $_response = [];
+    // client_id
+    protected $_appid = null;
+    // client_secret
+    protected $_secret = null;
+    // 跳转链接
+    protected $_redirect_uri = null;
+    // 用户授权后，得到的code参数
+    protected $_code = null;
+    // 用户的token
+    protected $_access_token = null;
+    // 用户信息
+    protected $_user_info = [];
+    // oauth_api地址
+    protected $_base_url = '';
+    // 链接锚点
+    protected $_anchor = '';
+    // scope
+    protected $_scope = '';
+    // state
+    protected $_state = '';
 
-    public function __call($name, $arguments)
+    /**
+     * 获取或跳转到认证链接
+     *
+     * @param string $uri 认证接口地址
+     * @param bool $redirect 跳转/否则返回认证地址
+     *
+     * @return string
+     */
+    protected function redirect($uri, $redirect = true)
+    {
+        $params = [
+            'client_id' => $this->_appid,
+            'redirect_uri' => $this->_redirect_uri,
+            'response_type' => 'code',
+        ];
+
+        !empty($this->_state) && $params['state'] = $this->_state;
+        !empty($this->_scope) && $params['scope'] = $this->_scope;
+
+        $url = $this->_buildUrl($this->_base_url . $uri, $params);
+
+        if ($redirect) {
+            header("Location: {$url}");
+        } else {
+            return $url;
+        }
+    }
+
+    /**
+     * @desc 构造url
+     *
+     * @param string $url 基础url
+     * @param array $params 附带的get参数
+     * @param string $anchor 附带的锚点
+     *
+     * @return string
+     */
+    protected function _buildUrl($url, $params, $anchor = '')
+    {
+        return "{$url}?" . http_build_query($params) . ($anchor ? ('#' . urlencode($anchor)) : '' );
+    }
+
+    /**
+     * get方式调用接口
+     *
+     * @param $url
+     * @param $params
+     *
+     * @throws \Namet\Socialite\SocialiteException
+     */
+    protected function get()
+    {
+        $this->_request('get', func_get_args());
+    }
+
+    /**
+     * post方式调用接口
+     *
+     * @param $url
+     * @param $params
+     *
+     * @throws \Namet\Socialite\SocialiteException
+     */
+    protected function post()
+    {
+        $this->_request('post', func_get_args());
+    }
+
+    /**
+     * 利用http client发送请求
+     *
+     * @param $method
+     * @param $arguments
+     *
+     * @return mixed
+     * @throws \Namet\Socialite\SocialiteException
+     */
+    private function _request($method, $arguments)
     {
         try {
-            // 暂只允许GET，POST这两个方法
-            if (!in_array($name, ['get', 'post'])) {
-                throw new \Exception("不可用的方法：{$name} !");
-            }
             $request_time = time();
-            $response = call_user_func_array([$this->getClient(), $name], $arguments);
+            $response = $this->getClient()->$method($arguments[0], $arguments[1]);
             $response_time = time();
             // 如果开启了日志记录
             if ($this->_log) {
                 // 如果未指定LogHandler，则使用默认的
                 $handler = $this->_log_handler ?: new Log;
                 $log_data = [
-                    'driver' => $this->_name,
+                    'driver' => $this->getDriver(),
                     'request_time' => $request_time,
                     'response_time' => $response_time,
-                    'method' => $name,
+                    'method' => $method,
                     'params' => print_r($arguments, true),
                     'response' => (string)$response->getBody(),
                 ];
@@ -50,6 +144,11 @@ abstract class DriverBase
         } catch (\Exception $e) {
             throw new SocialiteException($e->getMessage());
         }
+    }
+
+    public function getDriver()
+    {
+        return $this->_name;
     }
 
     /**
@@ -123,30 +222,14 @@ abstract class DriverBase
     }
 
     /**
-     * @desc 跳转到指定链接
-     *
-     * @param string $url
-     * @param array  $params
-     * @param string $href
-     */
-    protected function redirect($url, $params = [], $href = '')
-    {
-        $url = $this->_buildUrl($url, $params, $href);
-
-        header("Location: {$url}");
-    }
-
-    /**
-     * @desc 构造url
-     *
-     * @param string $url 基础url
-     * @param array $params 附带的get参数
-     * @param string $href 附带的锚点
+     * @desc 获取连接中的code参数
      *
      * @return string
      */
-    private function _buildUrl($url, $params, $href = '')
+    public function getCode()
     {
-        return "{$url}?" . http_build_query($params) . ($href ? ('#' . urlencode($href)) : '' );
+        $this->_code = $this->_code ?: $_GET['code'];
+
+        return $this->_code;
     }
 }
