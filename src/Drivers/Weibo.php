@@ -8,52 +8,23 @@ use Namet\Socialite\SocialiteException;
 
 class Weibo extends DriverBase implements DriverInterface
 {
-    // client_id
-    protected $_appid = null;
-    // client_secret
-    protected $_secret = null;
-    // 跳转链接
-    protected $_redirect_uri = null;
-    // 接口返回的原始数据存储
-    protected $_response = [];
-    // 用户授权后，得到的code参数
-    protected $_code = null;
-    // 用户的token
-    protected $_access_token = null;
-    // 用户信息
-    protected $_user_info = [];
-    // weibo的oauth_api固定域名
+    // scope默认授权
+    protected $_scope = 'email';
+    // oauth_api地址
     protected $_base_url = 'https://api.weibo.com/';
     // 此Driver的名称
     protected $_name = 'weibo';
 
     /**
      * 跳转到用户授权界面
-     */
-    public function authorize()
-    {
-        $params = [
-            'client_id' => $this->_appid,
-            'redirect_uri' => $this->_redirect_uri,
-            'response_type' => 'code',
-            'scope' => !empty($this->_scope) ? $this->_scope : 'email',
-        ];
-
-        !empty($this->_state) && $params['state'] = $this->_state;
-
-        $this->redirect($this->_base_url . 'oauth2/authorize', $params);
-    }
-
-    /**
-     * @desc 获取连接中的code参数
+     *
+     * @param bool $redirect
      *
      * @return string
      */
-    public function getCode()
+    public function authorize($redirect = true)
     {
-        $this->_code = $this->_code ?: $_GET['code'];
-
-        return $this->_code;
+        return $this->redirect('oauth2/authorize', $redirect);
     }
 
     /**
@@ -74,7 +45,7 @@ class Weibo extends DriverBase implements DriverInterface
             ];
 
             $res = $this->post(
-                $this->_base_url . 'oauth2/access_token',
+                'oauth2/access_token',
                 ['form_params' => $params, 'headers' => ['Accept' => 'application/json']]
             );
 
@@ -106,13 +77,11 @@ class Weibo extends DriverBase implements DriverInterface
     /**
      * @desc 根据access_token获取用户基本信息
      *
-     * @param string $lang 语言：
-     *
      * @throws \Namet\Socialite\SocialiteException
      *
      * @return array
      */
-    public function getUserInfo($lang = '')
+    public function getUserInfo()
     {
         if (!$this->_user_info) {
             $res = $this->get($this->_base_url.'2/users/show.json', [

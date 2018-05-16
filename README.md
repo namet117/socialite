@@ -1,5 +1,5 @@
 # Socialite
-社会化登陆扩展包，当前包含微信、微博、百度、Github、QQ(`暂未完成完整测试，因为审核一直不让过😂`)。
+社会化登陆扩展包，当前包含微信、微博、百度、Github、QQ(`暂不可用，因为审核一直不让过，未完成完整测试😂`)。
 
 # 特点
 * 可扩展
@@ -17,7 +17,7 @@
 
 $config = [
     // 必填项
-    'appid' => YOUR_APP_ID,
+    'appid' => YOUR_CLIENT_ID,
     'secret' => YOUR_SECRET,
     'redirect_uri' => YOUR_CALLBACK_URL,
     // 选填项
@@ -30,7 +30,7 @@ $config = [
 <?php
 use Namet\Socialite\OAuth;
 
-// 当前支持的驱动有：wechat(微信)、weibo(新浪微博)、gitub(Github)、baidu(百度)
+// 当前支持的驱动有：wechat(网页微信接入，非扫码登陆)、weibo(新浪微博)、gitub(Github)、baidu(百度)
 /* Step1: 获取OAuth实例 */
 
 // 获取实例 方法1:
@@ -40,7 +40,10 @@ $oauth = new OAuth();
 $oauth->driver('wechat')->config($config);
 
 /* Step2: 跳转到认证服务器 */
-$oauth->authorize();
+// 直接跳转至认证服务器
+$oauth->authorize(true);
+// 输出跳转到认证服务器的地址
+echo $oauth->->authorize(false);
 ```
 3. 在回调地址中获取Code，然后换取Access_token，再获取用户信息
 ```php
@@ -58,13 +61,26 @@ try {
     // 调用handler::handle($data)的参数为一个数组，其结构为：
     // array (
     //    'driver' => 驱动名称,
-    //    'request_time' => 请求发送时间,
-    //    'response_time' => 接收到相应时间,
+    //    'request_time' => 请求发送时间 (microtime(true) 方法),
+    //    'response_time' => 接收到相应时间 (microtime(true) 方法),
     //    'method' => 调用方式 get/post,
     //    'params' => 请求参数,
     //    'response' => 原始返回数据(字符串),
     // )
     $oauth->setLogHandler(new otherHandler());
+
+    // 获取当前驱动名
+    $oauth->getDriver(); // 当前结果有：wechat、weibo、github、baidu
+
+    // 一次性获取全部常用信息 (⚠️ 0.4版本及之后新增)，格式为:
+    // array (
+    //    'uid' => 该平台的唯一id 可以此来区分用户,
+    //    'uname' => 用户昵称,
+    //    'avatar' => 头像url,
+    //    'access_token' => access_token值,
+    //    'expire_time' => token过期时间 (有的接口没有该字段，默认为''),
+    //    'refresh_token' => refresh_token值 (有的接口没有该字段，默认为''),
+    // )
 
     // 直接获取用户信息数组, 格式为:
     // array (
@@ -80,7 +96,7 @@ try {
     // 获取认真服务器返回的code(返回值是string类型)
     $code = $oauth->getCode();
 
-    // 刷新access_token
+    // 刷新access_token ⚠️当前只有wechat、baidu有该接口
     $oauth->refreshToken();
     $new_token = $oauth->getToken();
 
@@ -92,8 +108,9 @@ try {
     // $key可以：token(换取access_token时返回数据)、
     //          user(获取用户信息时返回数据)、
     //          refresh(刷新token时返回数据)、
-    //          check(验证oken时返回数据，`⚠️目前仅有wechat提供接口，其他不可用`)、
-    $response = $oauth->getResponse($key); //
+    //          check(验证oken时返回数据，`⚠️目前仅有wechat提供接口，其他不可用`)
+    // 当$key对应数据不存在时，返回的是空数组
+    $response = $oauth->getResponse($key);
 
 } catch(SocialiteException $e) {
     // 所有报错信息都将抛出异常，捕获后可进行处理

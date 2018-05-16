@@ -8,53 +8,35 @@ use Namet\Socialite\SocialiteException;
 
 class Wechat extends DriverBase implements DriverInterface
 {
-    // 微信接口返回的原始数据存储
-    protected $_response = [];
-    // 微信用户授权后，得到的code参数
-    protected $_code = null;
-    // 用户的token
-    protected $_access_token = null;
-    // openid
-    protected $_openid = null;
-    // 刷新token
-    protected $_resfresh_token = null;
-    // 用户信息
-    protected $_user_info = [];
+    // oauth_api地址
+    protected $_base_url = 'https://api.weixin.qq.com/';
+    // scope默认授权
+    protected $_scope = 'snsapi_userinfo';
     // 此Driver的名称
     protected $_name = 'wechat';
 
     /**
      * 跳转到微信用户授权界面
      */
-    public function authorize()
+    public function authorize($redirect = true)
     {
         $base_url = 'https://open.weixin.qq.com/connect/oauth2/authorize';
         $params = [
             'appid' => $this->_appid,
             'redirect_uri' => $this->_redirect_uri,
             'response_type' => 'code',
-            'scope' => (
-                    isset($this->_scope)
-                    && in_array($this->_scope, ['snsapi_userinfo', 'snsapi_base'])
-                )
+            'scope' => in_array($this->_scope, ['snsapi_userinfo', 'snsapi_base'])
                 ? $this->_scope
                 : 'snsapi_userinfo',
             'state' => empty($this->_state) ? 'WECHAT' : $this->_state,
         ];
+        $url = $this->_buildUrl($base_url, $params, 'wechat_redirect');
 
-        $this->redirect($base_url, $params, 'wechat_redirect');
-    }
-
-    /**
-     * @desc 获取连接中的code参数
-     *
-     * @return string
-     */
-    public function getCode()
-    {
-        $this->_code = $this->_code ?: $_GET['code'];
-
-        return $this->_code;
+        if ($redirect) {
+            header("Location: {$url}");
+        } else {
+            return $url;
+        }
     }
 
     /**
@@ -66,7 +48,7 @@ class Wechat extends DriverBase implements DriverInterface
     public function getToken()
     {
         if (!$this->_access_token) {
-            $base_url = 'https://api.weixin.qq.com/sns/oauth2/access_token';
+            $base_url = 'sns/oauth2/access_token';
             $params = [
                 'appid'      => $this->_appid,
                 'secret'     => $this->_secret,

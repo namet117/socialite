@@ -8,37 +8,19 @@ use Namet\Socialite\SocialiteException;
 
 class Github extends DriverBase implements DriverInterface
 {
-    // client_id
-    protected $_appid = null;
-    // client_secret
-    protected $_secret = null;
-    // 跳转链接
-    protected $_redirect_uri = null;
-    // 接口返回的原始数据存储
-    protected $_response = [];
-    // 用户授权后，得到的code参数
-    protected $_code = null;
-    // 用户的token
-    protected $_access_token = null;
-    // 用户信息
-    protected $_user_info = [];
+    // oauth_api地址
+    protected $_base_url = 'https://github.com/login/oauth/';
+    // scope默认授权
+    protected $_scope = 'user:email';
     // 此Driver的名称
     protected $_name = 'github';
 
     /**
      * 跳转到用户授权界面
      */
-    public function authorize()
+    public function authorize($redirect = true)
     {
-        $params = [
-            'client_id' => $this->_appid,
-            'redirect_uri' => $this->_redirect_uri,
-            'response_type' => 'code',
-        ];
-        !empty($this->_state) && $params['state'] = $this->_state;
-        !empty($this->_scope) && $params['scope'] = $this->_scope;
-
-        $this->redirect('https://github.com/login/oauth/authorize', $params);
+        return $this->redirect('authorize', $redirect);
     }
 
     /**
@@ -58,7 +40,7 @@ class Github extends DriverBase implements DriverInterface
             ];
             !empty($this->_state) && $params['state'] = $this->_state;
 
-            $res = $this->post('https://github.com/login/oauth/access_token', [
+            $res = $this->post('access_token', [
                 'headers' => [
                     'Accept' => 'application/json',
                 ],

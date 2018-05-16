@@ -93,7 +93,7 @@ abstract class DriverBase
      */
     protected function get()
     {
-        $this->_request('get', func_get_args());
+        return $this->_request('get', func_get_args());
     }
 
     /**
@@ -106,7 +106,7 @@ abstract class DriverBase
      */
     protected function post()
     {
-        $this->_request('post', func_get_args());
+        return $this->_request('post', func_get_args());
     }
 
     /**
@@ -121,9 +121,9 @@ abstract class DriverBase
     private function _request($method, $arguments)
     {
         try {
-            $request_time = time();
+            $request_time = microtime(1);
             $response = $this->getClient()->$method($arguments[0], $arguments[1]);
-            $response_time = time();
+            $response_time = microtime(1);
             // 如果开启了日志记录
             if ($this->_log) {
                 // 如果未指定LogHandler，则使用默认的
@@ -188,7 +188,7 @@ abstract class DriverBase
                 throw new SocialiteException("undefined key {$key} in response array");
             }
 
-            return $this->_response[$key];
+            return empty($this->_response[$key]) ? [] : $this->_response[$key];
         } else {
             return $this->_response;
         }
@@ -205,11 +205,25 @@ abstract class DriverBase
         $extend = [
             'driver' => $this->getDriver(),
             'access_token' => $this->_access_token,
-            'expire_time' =>'',
+            'expire_time' => $this->_getExpireTime(),
             'refresh_token' => empty($this->_refresh_token) ? '' : $this->_refresh_token,
         ];
 
         return array_merge($user_info, $extend);
+    }
+
+    /**
+     * 获取access_token失效的时间戳
+     *
+     * @return int
+     */
+    private function _getExpireTime()
+    {
+        if (!empty($this->_expires_in)) {
+            return $this->_expires_in > time() ? $this->_expires_in : (time() + $this->_expires_in);
+        }
+
+        return 0;
     }
 
     /**
@@ -239,7 +253,7 @@ abstract class DriverBase
      */
     protected function getClient()
     {
-        !$this->_client && $this->_client = new Client(['base_url' => $this->_base_url]);
+        !$this->_client && $this->_client = new Client(['base_uri' => $this->_base_url]);
 
         return $this->_client;
     }

@@ -24,7 +24,7 @@ class Baidu extends DriverBase implements DriverInterface
 
     public function authorize($redirect = true)
     {
-        $this->redirect('oauth/2.0/authorize', $redirect);
+        return $this->redirect('oauth/2.0/authorize', $redirect);
     }
 
     /**
