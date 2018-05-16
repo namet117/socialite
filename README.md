@@ -40,9 +40,9 @@ $oauth = new OAuth();
 $oauth->driver('wechat')->config($config);
 
 /* Step2: 跳转到认证服务器 */
-// 直接跳转至认证服务器
+// 直接跳转至认证服务器，传入true或者不传参数
 $oauth->authorize(true);
-// 输出跳转到认证服务器的地址
+// 输出跳转到认证服务器的地址
 echo $oauth->->authorize(false);
 ```
 3. 在回调地址中获取Code，然后换取Access_token，再获取用户信息
