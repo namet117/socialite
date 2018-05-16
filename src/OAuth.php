@@ -18,6 +18,8 @@ use Namet\Socialite\Drivers\Weibo;
  * @method refreshToken
  * @method checkToken
  * @method getResponse
+ * @method getDriver
+ * @method infos
  *
  * @package Namet\Socialite
  */

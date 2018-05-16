@@ -146,6 +146,11 @@ abstract class DriverBase
         }
     }
 
+    /**
+     * 获取当前驱动名称
+     *
+     * @return mixed
+     */
     public function getDriver()
     {
         return $this->_name;
@@ -190,6 +195,24 @@ abstract class DriverBase
     }
 
     /**
+     * 获取所有基本信息
+     *
+     * @return array
+     */
+    public function infos()
+    {
+        $user_info = $this->getUserInfo();
+        $extend = [
+            'driver' => $this->getDriver(),
+            'access_token' => $this->_access_token,
+            'expire_time' =>'',
+            'refresh_token' => empty($this->_refresh_token) ? '' : $this->_refresh_token,
+        ];
+
+        return array_merge($user_info, $extend);
+    }
+
+    /**
      * @desc 设置是否开启日志记录
      *
      * @param $flag
@@ -216,7 +239,7 @@ abstract class DriverBase
      */
     protected function getClient()
     {
-        !$this->_client && $this->_client = new Client();
+        !$this->_client && $this->_client = new Client(['base_url' => $this->_base_url]);
 
         return $this->_client;
     }

@@ -45,7 +45,7 @@ class Baidu extends DriverBase implements DriverInterface
             ];
             !empty($this->_state) && $params['state'] = $this->_state;
 
-            $res = $this->get($this->_base_url . 'oauth/2.0/token', ['query' => $params]);
+            $res = $this->get('oauth/2.0/token', ['query' => $params]);
 
             // 检查是否有错误
             $this->_checkError($res);
@@ -87,7 +87,7 @@ class Baidu extends DriverBase implements DriverInterface
     public function getUserInfo()
     {
         if (!$this->_user_info) {
-            $res = $this->get($this->_base_url . 'rest/2.0/passport/users/getLoggedInUser', [
+            $res = $this->get('rest/2.0/passport/users/getLoggedInUser', [
                 'query' => [
                     'access_token' => $this->getToken()
                 ],
@@ -139,7 +139,7 @@ class Baidu extends DriverBase implements DriverInterface
             'client_secret' => $this->_secret,
         ];
         // 获取返回值数组
-        $res = $this->get($this->_base_url . 'oauth/2.0/token', ['query' => $params]);
+        $res = $this->get('oauth/2.0/token', ['query' => $params]);
         // 检查返回值中是否有错误
         $this->_checkError($res);
         // 记录返回的数据
