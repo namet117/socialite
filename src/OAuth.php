@@ -11,15 +11,15 @@ use Namet\Socialite\Drivers\Weibo;
 /**
  * Class OAuth
  *
- * @method authorize
- * @method getCode
- * @method getToken
- * @method getUserInfo
- * @method refreshToken
- * @method checkToken
- * @method getResponse
- * @method getDriver
- * @method infos
+ * @method mixed authorize($redirect = false)
+ * @method string getCode()
+ * @method string getToken()
+ * @method array getUserInfo()
+ * @method mixed refreshToken()
+ * @method bool checkToken()
+ * @method array getResponse($key = '')
+ * @method string getDriver()
+ * @method array infos()
  *
  * @package Namet\Socialite
  */
