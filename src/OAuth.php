@@ -15,7 +15,7 @@ use Namet\Socialite\Drivers\Weibo;
  * @method string getCode()
  * @method string getToken()
  * @method array getUserInfo()
- * @method mixed refreshToken()
+ * @method bool refreshToken()
  * @method bool checkToken()
  * @method array getResponse($key = '')
  * @method string getDriver()

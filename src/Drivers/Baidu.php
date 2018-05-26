@@ -127,7 +127,7 @@ class Baidu extends DriverBase implements DriverInterface
     /**
      * @desc 刷新access_token
      *
-     * @return $this
+     * @return bool
      * @throws \Namet\Socialite\SocialiteException
      */
     public function refreshToken()
@@ -147,6 +147,6 @@ class Baidu extends DriverBase implements DriverInterface
         // 更新配置
         $this->config($res);
 
-        return $this;
+        return true;
     }
 }
