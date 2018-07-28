@@ -1,14 +1,19 @@
 # Socialite
-社会化登陆扩展包，当前包含微信、微博、百度、Github、QQ(`暂不可用，因为审核一直不让过，未完成完整测试😂`)。
+社会化登陆扩展包
 
-# 特点
-* 可扩展
+# 当前可用
+* 微信(非扫码登陆)
+* 微博
+* 百度
+* Github
+* OSChina ([https://www.oschina.net](https://www.oschina.net))
+* QQ(`暂不可用，因为审核一直不让过，未完成完整测试😂`)
 
 # 安装
 * 前置要求
     > PHP >= 5.5
 * 安装方式
-    > composer require "namet/socialite" -vvv
+    > composer require namet/socialite -vvv
 
 # 使用方法
 1. 配置信息
@@ -43,7 +48,7 @@ $oauth->driver('wechat')->config($config);
 // 直接跳转至认证服务器，传入true或者不传参数
 $oauth->authorize(true);
 // 输出跳转到认证服务器的地址
-echo $oauth->->authorize(false);
+echo $oauth->authorize(false);
 ```
 3. 在回调地址中获取Code，然后换取Access_token，再获取用户信息
 ```php
