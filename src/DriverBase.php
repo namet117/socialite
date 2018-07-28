@@ -265,6 +265,9 @@ abstract class DriverBase
      */
     public function getCode()
     {
+        if (method_exists($this, 'checkCode')) {
+            $this->checkCode();
+        }
         $this->_code = $this->_code ?: $_GET['code'];
 
         return $this->_code;

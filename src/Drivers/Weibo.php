@@ -115,6 +115,7 @@ class Weibo extends DriverBase implements DriverInterface
             'uid' => $this->_response['user']['id'],
             'uname' => $this->_response['user']['name'],
             'avatar' => $this->_response['user']['avatar_large'],
+            'email' => '',
         ];
 
         return $this->_user_info;

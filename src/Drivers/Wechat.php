@@ -134,6 +134,7 @@ class Wechat extends DriverBase implements DriverInterface
             'uid' => $this->_response['user']['openid'],
             'uname' => $this->_response['user']['nickname'],
             'avatar' => $this->_response['user']['headimgurl'],
+            'email' => '',
         ];
 
         return $this->_user_info;

@@ -6,21 +6,33 @@ use Namet\Socialite\DriverInterface;
 use Namet\Socialite\DriverBase;
 use Namet\Socialite\SocialiteException;
 
-class Github extends DriverBase implements DriverInterface
+/**
+ * Class Oschina
+ *
+ * @link https://www.oschina.net/openapi
+ *
+ * @package Namet\Socialite\Drivers
+ */
+class Oschina extends DriverBase implements DriverInterface
 {
     // oauth_api地址
-    protected $_base_url = 'https://github.com/login/oauth/';
-    // scope默认授权
-    protected $_scope = 'user:email';
+    protected $_base_url = 'https://www.oschina.net/action/';
     // 此Driver的名称
-    protected $_name = 'github';
+    protected $_name = 'oschina';
+    // scope默认授权
+    protected $_scope = '';
 
-    /**
-     * 跳转到用户授权界面
-     */
+    private $_errorMap = [
+        'invalid_request' => '无效请求（缺少必要参数）',
+        'invalid_client' => 'client_id无效',
+        'invalid_grant' => '授权方式无效',
+        'unauthorized_client' => '应用未授权',
+        'unsupported_grant_type' => '不支持的授权方式',
+    ];
+
     public function authorize($redirect = true)
     {
-        return $this->redirect('authorize', $redirect);
+        return $this->redirect('oauth2/authorize', $redirect);
     }
 
     /**
@@ -36,15 +48,17 @@ class Github extends DriverBase implements DriverInterface
                 'client_id' => $this->_appid,
                 'client_secret' => $this->_secret,
                 'code' => $this->getCode(),
+                'grant_type' => 'authorization_code',
                 'redirect_uri' => $this->_redirect_uri,
+                'dataType' => 'json',
             ];
             !empty($this->_state) && $params['state'] = $this->_state;
 
-            $res = $this->post('access_token', [
+            $res = $this->get('openapi/token', [
+                'query' => $params,
                 'headers' => [
-                    'Accept' => 'application/json',
-                ],
-                'form_params' => $params
+                    'User-Agent' => 'nameT-Blog-Server',
+                ]
             ]);
 
             // 检查是否有错误
@@ -67,34 +81,45 @@ class Github extends DriverBase implements DriverInterface
      */
     private function _checkError($res)
     {
-        if (!empty($res['error']) || !empty($res['error_code'])) {
-            // 百度认证服务器返回数据和获取用户信息接口返回数据格式不一致。
-            $msg = isset($res['error'])
-                ? ($res['error'] . ' : ' . $res['error_description'])
-                : ($res['error_code'] . ' : ' . $res['error_msg']);
+        if (!empty($res['error_code']) || !empty($res['error'])) {
+            $error = !empty($res['error_code']) ? $res['error_code'] : $res['error'];
+            // 认证服务器返回数据和获取用户信息接口返回数据格式不一致。
+            $msg = $error . ': ' .
+                (isset($this->_errorMap[$error])
+                    ? $this->_errorMap[$error]
+                    : (empty($res['error_description']) ? '' : $res['error_description']));
 
             throw new SocialiteException($msg);
         }
     }
 
     /**
-     * @desc 根据access_token获取用户基本信息
+     * 检查认证服务器返回code时是否有错误
      *
-     * @param string $lang
+     * @throws \Namet\Socialite\SocialiteException
+     */
+    public function checkCode()
+    {
+        $this->_checkError($_GET);
+    }
+
+    /**
+     * @desc 根据access_token获取用户基本信息
      *
      * @throws \Namet\Socialite\SocialiteException
      *
      * @return array
      */
-    public function getUserInfo($lang = '')
+    public function getUserInfo()
     {
         if (!$this->_user_info) {
-            $res = $this->get('https://api.github.com/user', [
+            $res = $this->get('openapi/user', [
                 'query' => [
                     'access_token' => $this->getToken(),
+                    'dataType' => 'json',
                 ],
                 'headers' => [
-                    'Accept' => 'application/json',
+                    'User-Agent' => 'nameT-Blog-Server',
                 ],
             ]);
             // 检查返回值是否有错误
@@ -102,7 +127,7 @@ class Github extends DriverBase implements DriverInterface
             // 记录返回的数据
             $this->_response['user'] = $res;
 
-            $this->_formatUserInfo();
+            return $this->_formatUserInfo();
         }
 
         return $this->_user_info;
@@ -118,8 +143,8 @@ class Github extends DriverBase implements DriverInterface
         $this->_user_info = [
             'uid' => $this->_response['user']['id'],
             'uname' => $this->_response['user']['name'],
-            'avatar' => $this->_response['user']['avatar_url'],
-            'email' => '',
+            'avatar' => $this->_response['user']['avatar'],
+            'email' => $this->_response['user']['email'],
         ];
 
         return $this->_user_info;
@@ -133,6 +158,8 @@ class Github extends DriverBase implements DriverInterface
      */
     public function refreshToken()
     {
-        throw new SocialiteException('暂未实现');
+        throw new SocialiteException('api does not exist');
     }
 }
+
+composer require install

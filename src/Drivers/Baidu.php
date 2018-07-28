@@ -119,6 +119,7 @@ class Baidu extends DriverBase implements DriverInterface
             'uid' => $this->_response['user']['uid'],
             'uname' => $this->_response['user']['uname'],
             'avatar' => 'http://tb.himg.baidu.com/sys/portrait/item/' . $this->_response['user']['portrait'],
+            'email' => '',
         ];
 
         return $this->_user_info;
