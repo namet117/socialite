@@ -1,8 +1,8 @@
 {
     "name": "namet/socialite",
-    "description": "a OAuth2 client package, with QQ|Wechat|Weibo inside",
+    "description": "a OAuth2 client package, with QQ|Wechat|Weibo|Github|Baidu|OSChina inside",
     "type": "library",
-    "keywords" : ["nameT", "OAuth2", "socialite", "QQ", "Wechat"],
+    "keywords" : ["nameT", "OAuth2", "socialite", "QQ", "Wechat", "Baidu", "Github", "OSChina", "Weibo"],
     "license": "MIT",
     "authors": [
         {
