@@ -21,7 +21,7 @@ class Oschina extends DriverBase implements DriverInterface
     protected $_name = 'oschina';
     // scope默认授权
     protected $_scope = '';
-
+    // 错误提示信息
     private $_errorMap = [
         'invalid_request' => '无效请求（缺少必要参数）',
         'invalid_client' => 'client_id无效',
@@ -30,6 +30,7 @@ class Oschina extends DriverBase implements DriverInterface
         'unsupported_grant_type' => '不支持的授权方式',
     ];
 
+    // 跳转认证服务器
     public function authorize($redirect = true)
     {
         return $this->redirect('oauth2/authorize', $redirect);
@@ -161,5 +162,3 @@ class Oschina extends DriverBase implements DriverInterface
         throw new SocialiteException('api does not exist');
     }
 }
-
-composer require install

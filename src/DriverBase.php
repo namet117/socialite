@@ -138,7 +138,8 @@ abstract class DriverBase
                 ];
                 $handler->handle($log_data);
             }
-            $data = \GuzzleHttp\json_decode((string)$response->getBody(), true);
+            $res = (string)$response->getBody();
+            $data = json_decode($res, true) ?: $res;
 
             return $data;
         } catch (\Exception $e) {
@@ -176,7 +177,7 @@ abstract class DriverBase
     /**
      * @desc 根据key获取微信接口返回的原始数据的数组
      *
-     * @param string $key getToken/getUserInfo/refreshToken/checkToken
+     * @param string $key token/user/refresh
      *
      * @return array|mixed
      * @throws \Namet\Socialite\SocialiteException
@@ -192,6 +193,18 @@ abstract class DriverBase
         } else {
             return $this->_response;
         }
+    }
+
+    /**
+     * 获取原返回值
+     *
+     * @return array
+     */
+    public function getOriginalUserInfo()
+    {
+        $user_info = $this->getUserInfo();
+
+        return $this->getResponse('user');
     }
 
     /**

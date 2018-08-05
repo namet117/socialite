@@ -6,8 +6,8 @@
 * 微博
 * 百度
 * Github
-* OSChina ([https://www.oschina.net](https://www.oschina.net))
-* QQ(`暂不可用，因为审核一直不让过，未完成完整测试😂`)
+* [OSChina](https://www.oschina.net) (0.5版本后可用)
+* QQ (0.5版本后可用)
 
 # 安装
 * 前置要求
@@ -35,7 +35,8 @@ $config = [
 <?php
 use Namet\Socialite\OAuth;
 
-// 当前支持的驱动有：wechat(网页微信接入，非扫码登陆)、weibo(新浪微博)、gitub(Github)、baidu(百度)
+// 当前支持的驱动有：
+// wechat(网页微信接入，非扫码登陆)、weibo(新浪微博)、gitub(Github)、baidu(百度)、qq(QQ)、oschina(开源中国OSChina)
 /* Step1: 获取OAuth实例 */
 
 // 获取实例 方法1:
@@ -92,8 +93,13 @@ try {
     //    'uid' => 该平台的唯一id 可以此来区分用户,
     //    'uname' => 用户昵称,
     //    'avatar' => 头像url,
+    //    'email' => '邮箱',
     // )
     $user = $oauth->getUserInfo();
+
+    // 获取认证服务器返回的原始用户信息，数组形式
+    // 详细请见各个平台的文档
+    $original = $oauth->getOriginalUserInfo();
 
     // 获取用户access_token(返回值是string类型)
     $access_token = $oauth->getToken();
@@ -101,7 +107,7 @@ try {
     // 获取认真服务器返回的code(返回值是string类型)
     $code = $oauth->getCode();
 
-    // 刷新access_token ⚠️当前只有wechat、baidu有该接口
+    // 刷新access_token ⚠️当前只有wechat、baidu、qq有该接口
     $oauth->refreshToken();
     $new_token = $oauth->getToken();
 
@@ -136,6 +142,9 @@ $oauth->registerDriver('new_driver', \NAMESPACE\TO\NEW_DRIVER::class);
 $oauth->driver('new_driver')->config($new_config);
 ...
 ```
+
+# 后续开发计划
+* 增加Google、Microsoft、Linkedin
 
 # LICENSE
 MIT
