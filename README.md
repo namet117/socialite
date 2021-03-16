@@ -10,10 +10,10 @@
 * QQ (0.5版本后可用)
 
 # 安装
-* 前置要求
-    > PHP >= 5.5
-* 安装方式
-    > composer require namet/socialite -vvv
+| PHP版本   | 安装方式                                     |
+| --------- | -------------------------------------------- |
+| 5.5 ~ 7.1 | composer require namet/socialite:"v0.5" -vvv |
+| >= 7.2    | composer require namet/socialite -vvv        |
 
 # 使用方法
 1. 配置信息
